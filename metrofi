@@ -1,0 +1,62 @@
+#!/bin/env node
+
+const fetch = require('node-fetch');
+
+(async () => {
+
+const URL = 'http://wifi.metronom.de/de/';
+const current_raw = await (
+	fetch(URL)
+	.then(response => response.text())
+);
+
+const token = current_raw.substr(
+	current_raw.indexOf('name="CSRFToken"') + 24,
+	32
+);
+const loggedIn = current_raw.includes('name="logout" value="true"');
+
+console.log('token:    ', token);
+console.log('logged in:', loggedIn);
+console.log();
+
+switch (process.argv[2]) {
+	case 'login':
+	case '1':
+		if (loggedIn) {
+			console.log('already logged in!');
+			break;
+		}
+		console.log('logging in...');
+		await fetch(URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Cookie': 'csrf=' + token,
+			},
+			body: 'login=true&CSRFToken=' + token,
+		});
+		console.log('done.');
+		break;
+	case 'logout':
+	case '0':
+		if (!loggedIn) {
+			console.log('already logged out!');
+			break;
+		}
+		console.log('logging out...');
+		await fetch(URL, {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/x-www-form-urlencoded',
+				'Cookie': 'csrf=' + token,
+			},
+			body: 'logout=true&CSRFToken=' + token,
+		});
+		console.log('done.');
+		break;
+	default:
+		console.log('usage: metrofi [login|logout]');
+}
+
+})();
