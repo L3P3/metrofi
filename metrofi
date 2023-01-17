@@ -1,14 +1,38 @@
 #!/bin/env node
 
-const fetch = require('node-fetch');
+const request_original = require('http').request;
+
+const request = options => new Promise((resolve, reject) => {
+	const {body} = options;
+	if (body) delete options.body;
+	const req = request_original('http://wifi.metronom.de/de/', options, res => {
+		if (![200, 302].includes(res.statusCode)) {
+			reject(res.statusMessage);
+		}
+		const body = [];
+		res.on('data', chunk => body.push(chunk));
+		res.on('end', () => {
+			resolve(Buffer.concat(body).toString());
+		});
+	});
+	req.on('error', e => reject(e.message));
+	if (body) req.write(body);
+	req.end();
+});
 
 (async () => {
 
-const URL = 'http://wifi.metronom.de/de/';
-const current_raw = await (
-	fetch(URL)
-	.then(response => response.text())
-);
+let current_raw;
+
+try {
+	current_raw = await request({
+		timeout: 3e3,
+	});
+}
+catch (e) {
+	console.error('cannot connect: ' + e);
+	return;
+}
 
 const token = current_raw.substr(
 	current_raw.indexOf('name="CSRFToken"') + 24,
@@ -28,7 +52,7 @@ switch (process.argv[2]) {
 			break;
 		}
 		console.log('logging in...');
-		await fetch(URL, {
+		await request({
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
@@ -45,7 +69,7 @@ switch (process.argv[2]) {
 			break;
 		}
 		console.log('logging out...');
-		await fetch(URL, {
+		await request({
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/x-www-form-urlencoded',
