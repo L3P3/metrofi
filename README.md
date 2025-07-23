@@ -3,8 +3,8 @@
 Want to use "metronom free WLAN" but not want to use the browser?
 Use this!
 
-usage: `metrofi [login|logout]`
+usage: `metrofi [--show | --logout]`
 
-Requires Node.js to be installed on your system!
+To build it, run `cargo build --release`.
 
 By using this, you of course agree to not abuse Metronom's wifi for any bad stuff.

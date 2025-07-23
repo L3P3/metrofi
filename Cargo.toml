@@ -1,0 +1,18 @@
+[package]
+name = "metrofi"
+authors = ["L3P3 <dev@l3p3.de>"]
+description = "accept hotspot terms automatically"
+repository = "https://github.com/L3P3/metrofi"
+version = "0.1.0"
+edition = "2021"
+license = "zlib"
+
+[profile.release]
+opt-level = "z"
+lto = true
+debug = false
+debug-assertions = false
+overflow-checks = false
+codegen-units = 1
+panic = "abort"
+strip = true
